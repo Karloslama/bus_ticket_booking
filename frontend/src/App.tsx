@@ -1,5 +1,5 @@
 import React from "react";
-import { ConfigProvider } from 'antd';
+import { ConfigProvider } from "antd";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import PublicRoute from "./components/PublicRoute";
@@ -18,14 +18,14 @@ import ManageUsers from "./pages/admin/ManageUsers";
 const App: React.FC = () => {
   return (
     <>
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: '#1677ff',
-          borderRadius: 6,
-        },
-      }}
-    ></ConfigProvider>
+      <ConfigProvider
+        theme={{
+          token: {
+            colorPrimary: "#1677ff",
+            borderRadius: 6,
+          },
+        }}
+      ></ConfigProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -37,7 +37,7 @@ const App: React.FC = () => {
           </Route>
 
           {/* Protected User Routes */}
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute role={"user"} />}>
             <Route path="/user/dashboard" element={<UserDashboard />} />
             <Route path="/user/book-bus" element={<BookBus />} />
             <Route path="/user/bookings" element={<Bookings />} />
@@ -45,7 +45,7 @@ const App: React.FC = () => {
           </Route>
 
           {/* Protected Admin Routes */}
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute role={"admin"} />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/buses" element={<ManageBuses />} />
             <Route path="/admin/users" element={<ManageUsers />} />
