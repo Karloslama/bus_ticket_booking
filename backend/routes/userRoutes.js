@@ -13,10 +13,10 @@ const router = express.Router();
 
 // User routes
 router.get("/", getAllUsers);
-router.post("/signup", signup);
+router.post("auth/register", signup);
 router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);
-router.post("/login", login);
+router.post("auth/login", login);
 router.get("/:id/bookings", getBookingsOfUser);
 router.get("/:id", getUserById);
 

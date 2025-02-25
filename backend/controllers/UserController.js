@@ -19,11 +19,15 @@ export const getAllUsers = async (req, res, next) => {
 
 //user Signup
 export const signup = async (req, res, next) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, confirmPassword } = req.body;
 
   //Input validation
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !confirmPassword) {
     return res.status(422).json({ message: "All fields are required" });
+  }
+
+  if(password!== confirmPassword){
+    return res.status(400).json({messaage:"Passwords do not match"})
   }
   try {
     //check if user already exists
@@ -45,7 +49,7 @@ export const signup = async (req, res, next) => {
   }
 };
 
-//update error
+//update User
 export const updateUser = async (req, res, next) => {
   const { name, email, password } = req.body;
   const id = req.params.id;
