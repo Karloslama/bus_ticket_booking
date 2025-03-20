@@ -4,34 +4,34 @@ import User from "../models/User.js";
 
 // Create a new booking
 export const createBooking = async (req, res, next) => {
-  const { user, bus, seats, totalAmount, paymentId, paymentStatus } = req.body;
+  const { userId, busId, seats, totalAmount, paymentId, status } = req.body;
 
   // Input validation
-  if (!user || !bus || !seats || !totalAmount || !paymentId) {
+  if (!userId || !busId || !seats || !totalAmount || !paymentId) {
     return res.status(422).json({ message: "All fields are required" });
   }
 
   try {
     // Check if user exists
-    const foundUser = await User.findById(user);
+    const foundUser = await User.findById(userId);
     if (!foundUser) {
       return res.status(404).json({ message: "User not found" });
     }
 
     // Check if bus exists
-    const foundBus = await Bus.findById(bus);
+    const foundBus = await Bus.findById(busId);
     if (!foundBus) {
       return res.status(404).json({ message: "Bus not found" });
     }
 
     // Create new booking
     const booking = new Bookings({
-      user,
-      bus,
+      userId,
+      busId,
       seats,
       totalAmount,
       paymentId,
-      paymentStatus,
+      status, // 'pending', 'confirmed', 'cancelled'
     });
     await booking.save();
 
@@ -55,7 +55,7 @@ export const createBooking = async (req, res, next) => {
 // Get all bookings
 export const getAllBookings = async (req, res, next) => {
   try {
-    const bookings = await Bookings.find().populate("user bus"); // Populate user and bus data
+    const bookings = await Bookings.find().populate("userId busId"); // Populate user and bus data
     if (!bookings || bookings.length === 0) {
       return res.status(404).json({ message: "No bookings found" });
     }
@@ -72,8 +72,8 @@ export const getBookingById = async (req, res, next) => {
 
   try {
     const booking = await Bookings.findById(id)
-      .populate("bus", "name from to")
-      .populate("user", "name email");
+      .populate("busId", "name from to") // Populate bus details
+      .populate("userId", "name email"); // Populate user details
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
@@ -89,19 +89,19 @@ export const getBookingById = async (req, res, next) => {
 // Update booking
 export const updateBooking = async (req, res, next) => {
   const id = req.params.id;
-  const { user, bus, seats, totalAmount, paymentId, paymentStatus } = req.body;
+  const { userId, busId, seats, totalAmount, paymentId, status } = req.body;
 
   // Input validation
-  if (!user || !bus || !seats || !totalAmount || !paymentId) {
+  if (!userId || !busId || !seats || !totalAmount || !paymentId) {
     return res.status(422).json({ message: "All fields are required" });
   }
 
   try {
     const booking = await Bookings.findByIdAndUpdate(
       id,
-      { user, bus, seats, totalAmount, paymentId, paymentStatus },
+      { userId, busId, seats, totalAmount, paymentId, status },
       { new: true } // Return the updated document
-    ).populate("user bus");
+    ).populate("userId busId");
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
@@ -127,14 +127,14 @@ export const deleteBooking = async (req, res, next) => {
     }
 
     // Optionally, remove the booking from the user's bookings array
-    const user = await User.findById(booking.user);
+    const user = await User.findById(booking.userId);
     user.bookings = user.bookings.filter(
       (bookingId) => bookingId.toString() !== id
     );
     await user.save();
 
     // Optionally, remove the booked seats from the bus
-    const bus = await Bus.findById(booking.bus);
+    const bus = await Bus.findById(booking.busId);
     bus.bookedSeats = bus.bookedSeats.filter(
       (seat) => !booking.seats.includes(seat)
     );

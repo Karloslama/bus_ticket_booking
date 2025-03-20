@@ -26,7 +26,7 @@ const initialState: BookingState = {
 export const fetchUserBookings = createAsyncThunk(
   "booking/fetchUserBookings",
   async () => {
-    const response = await axios.get("/api/bookings/user");
+    const response = await axios.get("http://localhost:5000/api/bookings");
     return response.data;
   }
 );
@@ -34,7 +34,9 @@ export const fetchUserBookings = createAsyncThunk(
 export const cancelBooking = createAsyncThunk(
   "booking/cancelBooking",
   async (bookingId: string) => {
-    const response = await axios.post(`/api/bookings/${bookingId}/cancel`);
+    const response = await axios.post(
+      `http://localhost:5000/api/bookings/${bookingId}`
+    );
     return response.data;
   }
 );

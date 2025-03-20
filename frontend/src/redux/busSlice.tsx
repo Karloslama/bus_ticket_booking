@@ -63,7 +63,8 @@ export const fetchBuses = createAsyncThunk(
   "bus/fetchBuses",
   async (params: { from?: string; to?: string; date?: string }) => {
     try {
-      const response = await axios.get("/api/buses", { params });
+      const response = await axios.get("http://localhost:5000/api/buses", { params });
+      console.log(response.data)
       return response.data;
     } catch (error) {
       console.log(error);
