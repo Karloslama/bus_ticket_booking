@@ -22,6 +22,9 @@ export const isAdmin = (req, res, next) => {
 };
 
 export const verifyToken = async (req, res, next) => {
+  if (req.path === "/api/admin/admin-setup") {
+    return next(); // Skip token check for admin registration
+  }
   //Get token from authorizd header
   const authHeader = req.headers.authorization;
   if (!authHeader)

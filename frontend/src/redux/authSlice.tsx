@@ -17,9 +17,9 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  user: null,
+  user: JSON.parse(localStorage.getItem("user") || "null"),
+  token: localStorage.getItem("token") || null,
   users: [],
-  token: localStorage.getItem("token"),
   loading: false,
   error: null,
 };
@@ -28,11 +28,28 @@ export const login = createAsyncThunk(
   "auth/login",
   async (credentials: { email: string; password: string }) => {
     const response = await axios.post(
-      "http://localhost:5000/api/auth/login",
+      "http://localhost:5000/api/users/auth/login",
       credentials
     );
     console.log(response.data);
     return response.data;
+  }
+);
+
+export const logout = createAsyncThunk(
+  "auth/logout",
+  async (_, { rejectWithValue }) => {
+    try {
+      // Call your backend logout API
+      await axios.post("http://localhost:5000/api/users/auth/logout");
+
+      // After the API call, clear the user and token from Redux and localStorage
+      localStorage.removeItem("token");
+      return { user: null, token: null };
+    } catch (error) {
+      console.error("Logout error:", error);
+      return rejectWithValue("Logout failed");
+    }
   }
 );
 
@@ -78,13 +95,14 @@ export const updateUser = createAsyncThunk(
 
 export const fetchAllUsers = createAsyncThunk(
   "auth/fetchAllUsers",
-  async () => {
+  async (userId: string) => {
     const response = await axios.get(
-      "http://localhost:5000/api/users/${userId}"
+      `http://localhost:5000/api/users/${userId}`
     );
     return response.data;
   }
 );
+
 
 // export const blockUser = createAsyncThunk(
 //   "auth/blockUser",
@@ -98,11 +116,12 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    logout: (state) => {
-      state.user = null;
-      state.token = null;
-      localStorage.removeItem("token");
-    },
+    // logout: (state) => {
+    //   state.user = null;
+    //   state.token = null;
+    //   localStorage.removeItem("token");
+    //   localStorage.removeItem("user");
+    // },
   },
   extraReducers: (builder) => {
     builder
@@ -113,8 +132,9 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
-        state.token = action.payload.token;
-        localStorage.setItem("token", action.payload.token);
+        state.token = action.payload.accessToken; //  Ensure token is stored correctly
+        localStorage.setItem("token", action.payload.accessToken);
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -155,18 +175,17 @@ const authSlice = createSlice({
       // Fetch all users
       .addCase(fetchAllUsers.fulfilled, (state, action) => {
         state.users = action.payload;
-      })
-      // Block user
-      // .addCase(blockUser.fulfilled, (state, action) => {
-      //   const index = state.users.findIndex(
-      //     (user) => user.id === action.payload.id
-      //   );
-      //   if (index !== -1) {
-      //     state.users[index] = action.payload;
-      //   }
-      // });
+      });
+    // Block user
+    // .addCase(blockUser.fulfilled, (state, action) => {
+    //   const index = state.users.findIndex(
+    //     (user) => user.id === action.payload.id
+    //   );
+    //   if (index !== -1) {
+    //     state.users[index] = action.payload;
+    //   }
+    // });
   },
 });
 
-export const { logout } = authSlice.actions;
 export default authSlice.reducer;

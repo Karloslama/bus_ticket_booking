@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import Bookings from "../models/Booking.js";
 import Bus from "../models/Bus.js";
+import bycrypt from "bcryptjs";
 
 // Get all users
 export const getAllUsers = async (req, res) => {
@@ -9,6 +10,44 @@ export const getAllUsers = async (req, res) => {
     res.status(200).json(users);
   } catch (err) {
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const adminSignup = async (req, res) => {
+  if (process.env.ALLOW_ADMIN_SIGNUP !== "true") {
+    return res.status(403).json({ message: "Admin signup is disabled" });
+  }
+
+  const { name, email, password } = req.body;
+
+  try {
+    // Check if an admin already exists
+    const existingAdmin = await User.findOne({ role: "admin" });
+    if (existingAdmin) {
+      return res.status(400).json({ message: "Admin user already exists" });
+    }
+
+    // Hash the password
+    const hashedPassword = await bycrypt.hash(password, 10);
+
+    // Create the admin user
+    const admin = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role: "admin"
+    });
+
+    await admin.save();
+
+    // Disable admin signup after the first admin is created
+    process.env.ALLOW_ADMIN_SIGNUP = "false";
+
+    res.status(201).json({ message: "Admin user created successfully" });
+  } catch (err) {
+    console.error(err);
+    console.log(err)
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import Bookings from "../models/Booking.js";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 dotenv.config();
 
 //Get All users
@@ -37,6 +38,18 @@ export const signup = async (req, res, next) => {
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
+
+    // //Require a  secret key to create an admin
+    // let userRole = "user"; // Default role
+    // if (role === "admin") {
+    //   if (secretkey !== process.env.ADMIN_SECRET) {
+    //     return res
+    //       .status(403)
+    //       .json({ message: "Invalid Secret eky for admin registration" });
+    //   }
+    //   userRole = "admin";
+    // }
+
     //Hash Password
     const hashPassword = bycrypt.hashSync(password, 10);
 
@@ -227,29 +240,29 @@ export const refreshtoken = async (req, res) => {
 };
 
 //Logout
-export const logout= async (req, res) => {
-  const token= req.cookie.refreshToken;
-  if(!token) return res.sendStatus(204) //No content if no token
-  
+export const logout = async (req, res) => {
+  const token = req.cookie.refreshToken;
+  if (!token) return res.sendStatus(204); //No content if no token
+
   try {
     //find user by refresh token and clear it
-    const existingUser= await User.findOne({refreshToken: token});
-    if(existingUser){
-      existingUser.refreshToken="";
-      await existingUser.save()
+    const existingUser = await User.findOne({ refreshToken: token });
+    if (existingUser) {
+      existingUser.refreshToken = "";
+      await existingUser.save();
     }
     //clear the cookie
-    res.clearCookie("refreshToken",{
+    res.clearCookie("refreshToken", {
       httpOnly: true,
-      secure: process.env.NODE_ENV==="prduction",
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     });
-    return res.status(200).json({message:"Logged out successfully"})
+    return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    console.log(error)
-    res.status(500).json({messaage:"Internal Sever Erro"})
+    console.log(error);
+    res.status(500).json({ messaage: "Internal Sever Erro" });
   }
-}
+};
 
 //Get a booking of a user
 export const getBookingsOfUser = async (req, res, next) => {

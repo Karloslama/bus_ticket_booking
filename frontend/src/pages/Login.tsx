@@ -15,12 +15,17 @@ const Login: React.FC = () => {
 
     try {
       const result = await dispatch(login(values)).unwrap();
-      console.log("Dispatch Result:", result); //  Check API response
+      console.log("Dispatch Result:", result); // Debug API response
 
-      message.success("Login successful!");
-      navigate("/user/dashboard");
+      if (result.token) {
+        console.log("Token received:", result.token); // Debug token
+        message.success("Login successful!");
+        navigate(`/${result.user.role}/dashboard`); // Navigate dynamically based on role
+      } else {
+        console.log("No token received!");
+      }
     } catch (error) {
-      console.log(error);
+      console.error("Login error:", error);
       message.error("Login failed. Please check your credentials.");
     }
   };
